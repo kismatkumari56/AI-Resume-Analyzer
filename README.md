@@ -68,6 +68,19 @@ The app opens at http://127.0.0.1:5000. Upload a PDF or DOCX resume and check th
 Please test with your own resume or a sample one. Do not upload other people's
 resumes to the repository.
 
+## Run the tests
+
+The automated tests use `pytest` and run completely in-process, so the Flask
+server does not need to be started:
+
+```bash
+# Run the full test suite
+pytest
+
+# Run only the PDF extraction, skill detection, scoring and upload tests
+pytest tests/test_resume_analyzer.py
+```
+
 ## Evaluation & Accuracy Benchmarking
 
 The project includes an automated benchmark suite to evaluate skill extraction precision, recall, and F1-score against synthetic test resumes containing zero real-world personal information:
