@@ -218,6 +218,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const input = document.getElementById("resume-input");
   const nameEl = document.getElementById("file-name");
   const errorEl = document.getElementById("upload-error");
+  const selectedFile = document.getElementById("selectedFile");
   if (!box || !input) return;
 
   const MAX_SIZE = 10 * 1024 * 1024;
@@ -237,11 +238,21 @@ document.addEventListener("DOMContentLoaded", function () {
     if (error) {
       errorEl.textContent = error;
       nameEl.textContent = "";
+      if (selectedFile) {
+        selectedFile.textContent = "No file selected";
+      }
       input.value = "";
       return false;
     }
     errorEl.textContent = "";
     nameEl.textContent = "Selected: " + file.name;
+
+    if (selectedFile) {
+      const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+      selectedFile.textContent =
+        "Selected: " + file.name + " (" + fileSize + " MB)";
+    }
+
     return true;
   }
 
