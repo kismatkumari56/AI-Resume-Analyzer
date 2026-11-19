@@ -138,6 +138,19 @@ class UploadTests(unittest.TestCase):
 
         self.assertEqual(message, "No readable text found in this DOCX.")
 
+    def test_blank_pdf_says_no_readable_text(self):
+        from pypdf import PdfWriter
+
+        writer = PdfWriter()
+        writer.add_blank_page(width=72, height=72)
+        buffer = io.BytesIO()
+        writer.write(buffer)
+
+        message = self.upload(buffer.getvalue(), "blank.pdf")
+
+        self.assertEqual(message, "No readable text found in this PDF.")
+        self.assert_uploads_empty()
+
 
 if __name__ == "__main__":
     unittest.main()

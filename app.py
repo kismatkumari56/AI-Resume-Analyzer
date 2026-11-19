@@ -5,12 +5,21 @@ import uuid
 import threading
 import webbrowser
 
+
+from docx.opc.exceptions import PackageNotFoundError
+from flask import Flask, render_template, request
+
 from flask import Flask, jsonify, redirect, render_template, request, send_file, session, url_for
+
 from werkzeug.utils import secure_filename
 from docx.opc.exceptions import PackageNotFoundError
 
+
+from analyzer.docx_reader import DocxReadError
+
 from analyzer.pdf_reader import extract_pdf_text
 from analyzer.docx_reader import DocxReadError, check_docx_file
+
 from analyzer.resume_extractor import extract_resume_text
 from analyzer.ocr import OCRError
 from analyzer.section_detector import extract_sections
@@ -77,8 +86,31 @@ def analyze():
     if not is_valid:
         return error_resp
 
+
+    file = request.files["resume"]
+
+    if not file.filename:
+        return "No file selected."
+
+    original_filename = file.filename
+    extension = os.path.splitext(original_filename)[1].lower()
+
+    if extension not in ALLOWED_EXTENSIONS:
+        return "Only PDF and DOCX files are allowed."
+
+    # Used in messages shown to the user: "PDF" or "DOCX"
+    file_type = extension[1:].upper()
+
+    filename = secure_filename(original_filename)
+
+    if not filename:
+        return "Invalid filename."
+
+    unique_filename = f"{uuid.uuid4().hex}_{filename}"
+
     file_type = extension[1:].upper()
     unique_filename = generate_secure_filename(extension)
+
 
     filepath = os.path.join(
         app.config["UPLOAD_FOLDER"],
@@ -172,6 +204,9 @@ def analyze():
         )
 
         # Job Description Matching
+
+        job_match = match_resume_to_job(found_skills, job_description)
+
         job_match = match_resume_to_job(
             found_skills,
             job_description,
@@ -217,6 +252,7 @@ def analyze():
             "skill_gap": skill_gap,
             "roadmap": roadmap,
         }
+
 
         print("\n========== RESUME ANALYSIS ==========")
         print("DETECTED SKILLS:", found_skills)
@@ -266,10 +302,12 @@ def analyze():
             resume_text=resume_text,
             resume_score=resume_score,
             score_breakdown=score_breakdown,
+
             category_details=category_details,
             overall_explanation=overall_explanation,
             scoring_formula=scoring_formula,
             improvement_areas=improvement_areas,
+
             recommendations=recommendations,
             keyword_analysis=keyword_analysis,
             ats_result=ats_result,
@@ -290,6 +328,15 @@ def analyze():
             report_json=json.dumps(report)
         )
 
+
+    except (DocxReadError, PackageNotFoundError) as error:
+        # DocxReadError messages are written for the user, so they are safe
+        # to show. PackageNotFoundError comes from python-docx when the
+        # uploaded file is not a valid DOCX.
+        if isinstance(error, PackageNotFoundError):
+            return "This file is not a valid DOCX document."
+        return str(error)
+
     except OCRError as error:
         # OCR errors (e.g. missing tesseract or image read failure) provide clear guidance
         return str(error)
@@ -305,6 +352,7 @@ def analyze():
             request=request,
             legacy_200_for_html=True,
         )
+
 
     except Exception as error:
         print("Analysis Error:", error)

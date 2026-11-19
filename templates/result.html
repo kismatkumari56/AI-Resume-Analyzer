@@ -427,7 +427,7 @@
 
                 <div class="keyword-bar-track">
                     <div class="keyword-bar keyword-{{ item.status }}"
-                         style="width: {{ item.bar_width }}%"></div>
+                         data-width="{{ item.bar_width }}"></div>
                 </div>
 
                 <div class="keyword-stats">
@@ -1444,7 +1444,7 @@
 </div>
     <!-- Progress Bar JavaScript -->
     <script>
-        document.querySelectorAll('.progress-fill').forEach(bar => {
+        document.querySelectorAll('.progress-fill, .keyword-bar').forEach(bar => {
             bar.style.width = bar.dataset.width + '%';
         });
     </script>

@@ -66,6 +66,73 @@ class ResumeExtractorTests(unittest.TestCase):
 
             self.assertEqual(extract_docx_text(path), "")
 
+    @patch("analyzer.resume_extractor.PdfReader")
+    def test_extract_pdf_text_cleans_whitespace_and_keeps_line_breaks(
+        self, reader_class
+    ):
+        page = MagicMock()
+        page.extract_text.return_value = (
+            "  Jane   Doe \r\n\r\n\r\n SKILLS \x0c Python,\tFlask  "
+        )
+        reader_class.return_value.pages = [page]
+
+        self.assertEqual(
+            extract_pdf_text("resume.pdf"),
+            "Jane Doe\n\nSKILLS\nPython, Flask\n",
+        )
+
+    @patch("analyzer.resume_extractor.PdfReader")
+    def test_extract_pdf_text_normalizes_ligatures(self, reader_class):
+        page = MagicMock()
+        page.extract_text.return_value = "e\ufb03cient  developer"
+        reader_class.return_value.pages = [page]
+
+        self.assertIn("efficient developer", extract_pdf_text("resume.pdf"))
+
+    @patch("analyzer.resume_extractor.PdfReader")
+    def test_extract_pdf_text_skips_unreadable_pages(self, reader_class):
+        first_page = MagicMock()
+        first_page.extract_text.return_value = "First page"
+        broken_page = MagicMock()
+        broken_page.extract_text.side_effect = ValueError("bad page")
+        last_page = MagicMock()
+        last_page.extract_text.return_value = "Last page"
+        reader_class.return_value.pages = [
+            first_page,
+            broken_page,
+            last_page,
+        ]
+
+        self.assertEqual(
+            extract_pdf_text("resume.pdf"),
+            "First page\nLast page\n",
+        )
+
+    @patch("analyzer.resume_extractor.PdfReader")
+    def test_extract_pdf_text_skips_none_page_text(self, reader_class):
+        first_page = MagicMock()
+        first_page.extract_text.return_value = "Page 1"
+        none_page = MagicMock()
+        none_page.extract_text.return_value = None
+        last_page = MagicMock()
+        last_page.extract_text.return_value = "Page 2"
+        reader_class.return_value.pages = [first_page, none_page, last_page]
+
+        self.assertEqual(
+            extract_pdf_text("resume.pdf"),
+            "Page 1\nPage 2\n",
+        )
+
+    @patch("analyzer.resume_extractor.PdfReader")
+    def test_extract_pdf_text_returns_empty_string_without_text(
+        self, reader_class
+    ):
+        page = MagicMock()
+        page.extract_text.return_value = "  \n\t  \n"
+        reader_class.return_value.pages = [page]
+
+        self.assertEqual(extract_pdf_text("resume.pdf"), "")
+
     def test_extract_pdf_text_reads_multiple_pages(self):
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, "resume.pdf")
