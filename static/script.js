@@ -48,6 +48,58 @@ function switchTheme(theme) {
 applyTheme(getSavedTheme());
 
 document.addEventListener("DOMContentLoaded", function () {
+        // Resume Analysis Loading Animation
+    const resumeForm = document.getElementById("resume-upload-form");
+    const loadingOverlay = document.getElementById("analysis-loading");
+
+    if (resumeForm && loadingOverlay) {
+
+        const submitButton = resumeForm.querySelector(
+    'button[type="submit"], input[type="submit"]'
+);
+        let isSubmitting = false;
+
+        resumeForm.addEventListener("submit", function (event) {
+
+            // Allow browser validation to run first.
+            if (!resumeForm.checkValidity()) {
+                return;
+            }
+
+            // Prevent multiple submissions.
+            if (isSubmitting) {
+                event.preventDefault();
+                return;
+            }
+
+            isSubmitting = true;
+
+            // Disable the submit button.
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.setAttribute("aria-disabled", "true");
+            }
+
+            // Display loading animation.
+            loadingOverlay.hidden = false;
+            loadingOverlay.setAttribute("aria-hidden", "false");
+        });
+
+        // Reset loading state when returning to this page.
+        window.addEventListener("pageshow", function () {
+
+            isSubmitting = false;
+
+            loadingOverlay.hidden = true;
+            loadingOverlay.setAttribute("aria-hidden", "true");
+
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.removeAttribute("aria-disabled");
+            }
+
+        });
+    }
 
     const themeToggle = document.getElementById("themeToggle");
 
