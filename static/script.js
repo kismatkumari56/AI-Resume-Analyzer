@@ -158,3 +158,22 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
+// RESUME FILE SELECTION FEEDBACK
+document.addEventListener("DOMContentLoaded", function () {
+    const resumeInput = document.getElementById("resume");
+    const selectedFile = document.getElementById("selectedFile");
+
+    if (!resumeInput || !selectedFile) return;
+
+    resumeInput.addEventListener("change", function () {
+        const file = resumeInput.files[0];
+
+        if (file) {
+            const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+            selectedFile.textContent =
+                "Selected: " + file.name + " (" + fileSize + " MB)";
+        } else {
+            selectedFile.textContent = "No file selected";
+        }
+    });
+});
