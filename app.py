@@ -21,7 +21,6 @@ from analyzer.keyword_analyzer import analyze_keywords
 from analyzer.ats_checker import analyze_ats
 from analyzer.job_matcher import match_resume_to_job
 from analyzer.report_generator import build_report, build_txt_report
-from analyzer.report_generator import build_report
 from analyzer.section_quality import analyze_section_quality
 from analyzer.project_checker import check_project_descriptions
 from analyzer.action_verb_analyzer import analyze_action_verbs
@@ -146,17 +145,30 @@ def analyze():
             job_description,
             resume_sections=resume_sections
         )
-        # ATS Compatibility Analysis
+         # ATS Compatibility Analysis
         ats_result = analyze_ats(resume_text, found_skills)
 
         # Section Quality Analysis (Issue #51)
         section_quality = analyze_section_quality(
+            resume_text,
+            resume_sections=resume_sections
+        )
+
         # Project Description Quality Analysis (Issue #52)
         project_analysis = check_project_descriptions(
+            resume_text,
+            resume_sections=resume_sections
+        )
+
         # Action Verb Analysis (Issue #54)
         action_verb_analysis = analyze_action_verbs(
+            resume_text,
+            resume_sections=resume_sections
+        )
+
         # Readability Analysis (Issue #55)
         readability_analysis = analyze_readability(resume_text)
+
         # Timeline & Date Consistency Analysis (Issue #53)
         timeline_analysis = check_timeline_consistency(
             resume_text,
