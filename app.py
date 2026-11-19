@@ -1,4 +1,4 @@
-import io
+﻿import io
 import json
 import os
 import threading
@@ -148,18 +148,22 @@ def analyze():
             resume_text,
             resume_sections=resume_sections
         )
+
         # Project Description Quality Analysis (Issue #52)
         project_analysis = check_project_descriptions(
             resume_text,
             resume_sections=resume_sections
         )
+
         # Action Verb Analysis (Issue #54)
         action_verb_analysis = analyze_action_verbs(
             resume_text,
             resume_sections=resume_sections
         )
+
         # Readability Analysis (Issue #55)
         readability_analysis = analyze_readability(resume_text)
+
         # Timeline & Date Consistency Analysis (Issue #53)
         timeline_analysis = check_timeline_consistency(
             resume_text,
