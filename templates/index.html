@@ -117,9 +117,10 @@
 
             <p>Start your smart resume analysis in seconds.</p>
 
-            <form action="/analyze"
-                  method="POST"
-                  enctype="multipart/form-data">
+            <form id="resume-upload-form"
+      action="/analyze"
+      method="POST"
+      enctype="multipart/form-data">
 
                 <div class="upload-box">
 
@@ -195,6 +196,25 @@
         </footer>
 
     </main>
+
+</div>
+<!-- Resume Analysis Loading Overlay -->
+<div id="analysis-loading"
+     class="analysis-loading-overlay"
+     role="status"
+     aria-live="polite"
+     aria-hidden="true"
+     hidden>
+
+    <div class="analysis-loading-card">
+
+        <div class="analysis-spinner" aria-hidden="true"></div>
+
+        <h2>Analyzing your resume...</h2>
+
+        <p>Please wait while we review your skills and experience.</p>
+
+    </div>
 
 </div>
 </body>
