@@ -880,9 +880,13 @@ details summary {
     color: #ff9b9b;
     border-color: #6d3a49;
 }
-
 .dark-mode .skill-tag.semantic,
 [data-theme="dark"] .skill-tag.semantic {
+    background: #17324d;
+    color: #7dd3fc;
+    border-color: #2b5573;
+}
+
 /* Download PDF button sits next to "Analyze Another Resume" */
 .result-footer form {
     display: inline-block;
@@ -892,6 +896,7 @@ details summary {
 .result-footer button.hero-btn {
     font-family: inherit;
 }
+
 .dark-mode .skill-tag.semantic {
     background: #17324d;
     color: #7dd3fc;
@@ -982,5 +987,182 @@ details summary {
 @media (prefers-reduced-motion: reduce) {
     .analysis-spinner {
         animation-duration: 1.8s;
+    }
+}
+
+/* =====================================
+   RESPONSIVE FIXES (issue #5)
+===================================== */
+
+body {
+    overflow-x: hidden;
+}
+
+img,
+svg,
+video {
+    max-width: 100%;
+    height: auto;
+}
+
+code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.result-container,
+.result-card,
+.upload-section {
+    overflow-wrap: anywhere;
+}
+
+.result-card {
+    min-width: 0;
+}
+
+.skill-tag,
+.keyword-chip {
+    max-width: 100%;
+}
+
+/* Touch-friendly sizes */
+button,
+.hero-btn,
+.theme-toggle {
+    min-height: 44px;
+}
+
+.hero-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Tablet and below */
+@media (max-width: 768px) {
+    .dashboard {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 14px 16px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+        margin: 0 auto 0 0;
+        font-size: 20px;
+    }
+
+    .menu-title,
+    .sidebar-bottom {
+        display: none;
+    }
+
+    .sidebar a {
+        margin: 0;
+        padding: 10px 12px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .main-content {
+        width: 100%;
+    }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+    .topbar {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .feature-grid {
+        gap: 12px;
+    }
+
+    .upload-box {
+        padding: 22px 12px;
+    }
+
+    input[type="file"] {
+        width: 100%;
+        font-size: 14px;
+    }
+
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    .upload-section button[type="submit"] {
+        width: 100%;
+    }
+
+    .result-container [style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    .result-container [style*="grid-template-columns"] > * {
+        min-width: 0;
+    }
+
+    .result-container [style*="justify-content: space-between"] {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .result-topbar {
+        flex-wrap: wrap;
+    }
+
+    .result-footer {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .result-footer form {
+        display: block;
+        width: 100%;
+        margin: 0;
+    }
+
+    .result-footer .hero-btn {
+        width: 100%;
+        margin-top: 0;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 360px) {
+    .result-container {
+        padding: 12px;
+    }
+
+    .result-card {
+        padding: 16px;
+    }
+
+    .hero h1 {
+        font-size: 24px;
+    }
+
+    .result-header h1 {
+        font-size: 22px;
+    }
+
+    .score-label {
+        font-size: 11px;
     }
 }

@@ -21,7 +21,6 @@ from analyzer.keyword_analyzer import analyze_keywords
 from analyzer.ats_checker import analyze_ats
 from analyzer.job_matcher import match_resume_to_job
 from analyzer.report_generator import build_report, build_txt_report
-from analyzer.report_generator import build_report
 from analyzer.section_quality import analyze_section_quality
 from analyzer.project_checker import check_project_descriptions
 from analyzer.action_verb_analyzer import analyze_action_verbs
@@ -151,10 +150,19 @@ def analyze():
 
         # Section Quality Analysis (Issue #51)
         section_quality = analyze_section_quality(
+            resume_text,
+            resume_sections=resume_sections
+        )
         # Project Description Quality Analysis (Issue #52)
         project_analysis = check_project_descriptions(
+            resume_text,
+            resume_sections=resume_sections
+        )
         # Action Verb Analysis (Issue #54)
         action_verb_analysis = analyze_action_verbs(
+            resume_text,
+            resume_sections=resume_sections
+        )
         # Readability Analysis (Issue #55)
         readability_analysis = analyze_readability(resume_text)
         # Timeline & Date Consistency Analysis (Issue #53)
@@ -358,14 +366,24 @@ def download_report():
 
 
 @app.route("/download-txt-report", methods=["POST"])
+@app.route("/api/download-txt-report", methods=["POST"])
 def download_txt_report():
 
+    is_valid, report_dict, error_resp = validate_report_download(request)
+    if not is_valid:
+        return error_resp
+
     try:
-        report_data = json.loads(request.form["report"])
-        txt_content = build_txt_report(report_data)
+        txt_content = build_txt_report(report_dict)
     except Exception as error:
         print("TXT Report Error:", error)
-        return "Unable to create the report. Please analyze your resume again.", 400
+        return format_error_response(
+            message="Unable to create the report. Please analyze your resume again.",
+            status_code=400,
+            error_code="REPORT_GENERATION_FAILED",
+            request=request,
+            legacy_200_for_html=False,
+        )
 
     return send_file(
         io.BytesIO(txt_content.encode("utf-8")),

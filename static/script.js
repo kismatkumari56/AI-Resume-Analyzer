@@ -210,3 +210,58 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
+
+// ---------------------------------------------------------------------------
+// Resume file size validation (runs in the browser before upload)
+// Keep MAX_RESUME_SIZE_MB in sync with MAX_CONTENT_LENGTH in app.py.
+// ---------------------------------------------------------------------------
+document.addEventListener("DOMContentLoaded", function () {
+
+    const MAX_RESUME_SIZE_MB = 10;
+    const MAX_RESUME_SIZE_BYTES = MAX_RESUME_SIZE_MB * 1024 * 1024;
+
+    const fileInput = document.querySelector('input[type="file"][name="resume"]');
+    if (!fileInput) return;
+
+    const form = fileInput.closest("form");
+
+    const errorBox = document.createElement("div");
+    errorBox.id = "fileSizeError";
+    errorBox.setAttribute("role", "alert");
+    errorBox.style.cssText =
+        "display:none; margin-top:10px; padding:10px 14px; border-radius:8px; " +
+        "background:#fdecea; color:#b3261e; border:1px solid #f5c2c0; " +
+        "font-size:13px; font-weight:500;";
+    fileInput.insertAdjacentElement("afterend", errorBox);
+
+    function formatSize(bytes) {
+        return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+    }
+
+    function validateFileSize() {
+        const file = fileInput.files && fileInput.files[0];
+
+        if (file && file.size > MAX_RESUME_SIZE_BYTES) {
+            errorBox.textContent =
+                "File is too large (" + formatSize(file.size) + "). " +
+                "Maximum allowed size is " + MAX_RESUME_SIZE_MB + " MB. " +
+                "Please choose a smaller file.";
+            errorBox.style.display = "block";
+            fileInput.setCustomValidity("File exceeds the " + MAX_RESUME_SIZE_MB + " MB limit.");
+            fileInput.value = "";
+            return false;
+        }
+
+        errorBox.style.display = "none";
+        fileInput.setCustomValidity("");
+        return true;
+    }
+
+    fileInput.addEventListener("change", validateFileSize);
+
+    if (form) {
+        form.addEventListener("submit", function (event) {
+            if (!validateFileSize()) event.preventDefault();
+        });
+    }
+});

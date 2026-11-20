@@ -793,6 +793,37 @@
                     <ul style="margin: 4px 0 8px 18px; font-size: 13px; color: #555;">
                         {% for gap in sec.gaps %}
                             <li>{{ gap }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if sec.suggestions %}
+                <div style="margin-top: 8px; border-top: 1px dashed #e4dcff; padding-top: 8px;">
+                    <strong style="font-size: 12px; color: #7054d9;">Recommendations for {{ sec.name }}:</strong>
+                    {% for tip in sec.suggestions %}
+                        <div class="suggestion" style="margin: 6px 0; padding: 10px; font-size: 13px;">
+                            ✦ {{ tip }}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if section_quality.summary.key_takeaways %}
+        <h3 class="ats-subheading">Key Section Observations</h3>
+        {% for takeaway in section_quality.summary.key_takeaways %}
+            <div class="suggestion">
+                ✦ {{ takeaway }}
+            </div>
+        {% endfor %}
+        {% endif %}
+    </section>
+    {% endif %}
+
     <!-- Project Description Quality Analysis -->
     {% if project_analysis %}
     <section class="result-card">
@@ -811,8 +842,9 @@
         </p>
 
         {% if project_analysis.projects %}
+        <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
             {% for proj in project_analysis.projects %}
-            <div style="border: 1px solid #eeedf6; border-radius: 12px; padding: 18px; margin-bottom: 16px; background: #faf9ff;">
+            <div style="border: 1px solid #eeedf6; border-radius: 12px; padding: 18px; background: #faf9ff;">
                 <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
                     <h3 style="margin: 0; font-size: 16px; color: #7054d9;">🚀 {{ proj.title }}</h3>
                     <span class="skill-tag" style="{% if proj.quality_status == 'Detailed & Strong' %}background: #eefbf4; color: #1b8748; border-color: #c6f0d6;{% elif proj.quality_status == 'Needs Improvement' %}background: #fff0f0; color: #d94545; border-color: #ffd4d4;{% endif %}">
@@ -855,13 +887,6 @@
                 </div>
                 {% endif %}
 
-                {% if sec.suggestions %}
-                <div style="margin-top: 8px; border-top: 1px dashed #e4dcff; padding-top: 8px;">
-                    <strong style="font-size: 12px; color: #7054d9;">Recommendations for {{ sec.name }}:</strong>
-                    {% for tip in sec.suggestions %}
-                        <div class="suggestion" style="margin: 6px 0; padding: 10px; font-size: 13px;">
-                            ✦ {{ tip }}
-                        </div>
                 {% if proj.wording_suggestions %}
                 <div style="margin-top: 12px; border-top: 1px dashed #e2deee; padding-top: 10px;">
                     <strong style="font-size: 13px; color: #7054d9;">Sample Wording Suggestions (Use with your own details):</strong>
@@ -875,13 +900,6 @@
             </div>
             {% endfor %}
         </div>
-        {% endif %}
-
-        {% if section_quality.summary.key_takeaways %}
-        <h3 class="ats-subheading">Key Section Observations</h3>
-        {% for takeaway in section_quality.summary.key_takeaways %}
-            <div class="suggestion">
-                ✦ {{ takeaway }}
         {% endif %}
 
         {% if project_analysis.general_suggestions %}
@@ -906,6 +924,10 @@
                 {% endfor %}
             </div>
         </details>
+        {% endif %}
+    </section>
+    {% endif %}
+
     <!-- Action Verb Analysis (Issue #54) -->
     {% if action_verb_analysis %}
     <section class="result-card">
@@ -913,13 +935,6 @@
             <h2>Action Verb Analysis</h2>
             <span class="tag" style="font-size: 12px; font-weight: 600;">
                 {{ action_verb_analysis.total_action_verbs }} Verbs Detected ({{ action_verb_analysis.unique_action_verbs }} Unique)
-    <!-- Resume Readability Analysis (Issue #55) -->
-    {% if readability_analysis %}
-    <section class="result-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h2>Resume Readability Analysis</h2>
-            <span class="tag" style="font-size: 12px; font-weight: 600;">
-                {{ readability_analysis.reading_level }}
             </span>
         </div>
 
@@ -992,12 +1007,58 @@
                 <p style="margin: 0 0 10px 0; font-size: 13px; color: var(--text, #302b4c); line-height: 1.5; font-style: italic;">
                     "{{ item.original_sentence }}"
                 </p>
-                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12px; color: var(--text-soft, #555);">
+                <div style="display: flex; align-items: center; flex-wrap: gap: 6px; font-size: 12px; color: var(--text-soft, #555);">
                     <strong style="color: var(--accent, #7054d9);">Suggested Action Verbs:</strong>
                     {% for alt in item.suggested_alternatives %}
                     <span style="background: rgba(112, 84, 217, 0.08); color: var(--accent, #7054d9); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 4px;">{{ alt }}</span>
                     {% endfor %}
                 </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Action Verbs by Domain -->
+        {% if action_verb_analysis.action_verbs_by_category %}
+        <h3 class="ats-subheading">Action Verbs by Domain</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px;">
+            {% for cat_name, verbs in action_verb_analysis.action_verbs_by_category.items() %}
+            <div style="background: var(--surface-soft, #faf9fe); border: 1px solid var(--border, #eeeef5); border-radius: 8px; padding: 12px;">
+                <strong style="font-size: 13px; color: var(--text, #302b4c); display: block; margin-bottom: 8px;">{{ cat_name }}</strong>
+                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                    {% for v in verbs %}
+                    <span class="skill-tag" style="font-size: 11px; margin: 0; padding: 3px 8px;">
+                        {{ v.verb }} <small style="opacity: 0.7;">({{ v.count }}×)</small>
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if action_verb_analysis.recommendations %}
+        <h3 class="ats-subheading">Action Verb Recommendations</h3>
+        {% for tip in action_verb_analysis.recommendations %}
+            <div class="suggestion">
+                ✦ {{ tip }}
+            </div>
+        {% endfor %}
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <!-- Resume Readability Analysis (Issue #55) -->
+    {% if readability_analysis %}
+    <section class="result-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h2>Resume Readability Analysis</h2>
+            <span class="tag" style="font-size: 12px; font-weight: 600;">
+                {{ readability_analysis.reading_level }}
+            </span>
+        </div>
+
+        <p class="ats-note" style="margin-bottom: 20px;">
             Evaluates sentence length, linguistic complexity, and ease of scanning to ensure recruiters and hiring managers can quickly digest your qualifications.
         </p>
 
@@ -1043,6 +1104,35 @@
                 </div>
                 <p style="margin: 0; color: #78350f;">"{{ item.sentence }}"</p>
             </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Complex Words Sample -->
+        {% if readability_analysis.complex_words %}
+        <h3 class="ats-subheading">Complex Wording Sample</h3>
+        <p class="ats-note" style="margin-bottom: 10px;">
+            Technical terms and polysyllabic words identified in your resume:
+        </p>
+        <div class="skill-list" style="margin-bottom: 22px;">
+            {% for word in readability_analysis.complex_words %}
+            <span class="skill-tag" style="background: var(--surface-soft, #faf9fe); font-size: 12px;">{{ word }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Readability Recommendations -->
+        {% if readability_analysis.recommendations %}
+        <h3 class="ats-subheading">Readability Recommendations</h3>
+        {% for tip in readability_analysis.recommendations %}
+            <div class="suggestion">
+                ✦ {{ tip }}
+            </div>
+        {% endfor %}
+        {% endif %}
+    </section>
+    {% endif %}
+
     <!-- Date & Timeline Consistency Analysis -->
     {% if timeline_analysis %}
     <section class="result-card">
@@ -1066,40 +1156,6 @@
         </div>
         {% endif %}
 
-        <!-- Action Verbs by Domain -->
-        {% if action_verb_analysis.action_verbs_by_category %}
-        <h3 class="ats-subheading">Action Verbs by Domain</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px;">
-            {% for cat_name, verbs in action_verb_analysis.action_verbs_by_category.items() %}
-            <div style="background: var(--surface-soft, #faf9fe); border: 1px solid var(--border, #eeeef5); border-radius: 8px; padding: 12px;">
-                <strong style="font-size: 13px; color: var(--text, #302b4c); display: block; margin-bottom: 8px;">{{ cat_name }}</strong>
-                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
-                    {% for v in verbs %}
-                    <span class="skill-tag" style="font-size: 11px; margin: 0; padding: 3px 8px;">
-                        {{ v.verb }} <small style="opacity: 0.7;">({{ v.count }}×)</small>
-                    </span>
-                    {% endfor %}
-                </div>
-            </div>
-        <!-- Complex Words Sample -->
-        {% if readability_analysis.complex_words %}
-        <h3 class="ats-subheading">Complex Wording Sample</h3>
-        <p class="ats-note" style="margin-bottom: 10px;">
-            Technical terms and polysyllabic words identified in your resume:
-        </p>
-        <div class="skill-list" style="margin-bottom: 22px;">
-            {% for word in readability_analysis.complex_words %}
-            <span class="skill-tag" style="background: var(--surface-soft, #faf9fe); font-size: 12px;">{{ word }}</span>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Overall Recommendations -->
-        <h3 class="ats-subheading">Recommendations</h3>
-        {% for tip in action_verb_analysis.recommendations %}
-        <!-- Readability Recommendations -->
-        <h3 class="ats-subheading">Readability Recommendations</h3>
-        {% for tip in readability_analysis.recommendations %}
         {% if timeline_analysis.inconsistencies %}
         <h3 class="ats-subheading">Observations & Advisory Notes</h3>
         {% for inc in timeline_analysis.inconsistencies %}
