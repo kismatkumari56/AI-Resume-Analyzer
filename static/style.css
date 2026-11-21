@@ -1027,3 +1027,10 @@ button,
     .result-header h1 { font-size: 22px; }
     .score-label { font-size: 11px; }
 }
+.upload-box.dragover {
+  border-color: #6c5ce7;
+  background: rgba(108, 92, 231, 0.1);
+  transition: background .2s, border-color .2s;
+}
+#upload-error { color: #d93025; font-size: 14px; min-height: 1.2em; }
+#file-name { font-weight: 600; font-size: 14px; }

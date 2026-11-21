@@ -130,9 +130,12 @@
                     <p>Choose a PDF or DOCX file from your computer</p>
 
                     <input type="file"
+                     id="resume-input"
                            name="resume"
                            accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                            required>
+                           <p id="file-name"></p>
+<p id="upload-error" role="alert"></p>
 
                     <small>Accepted formats: PDF, DOCX &middot; Maximum file size: 10 MB</small>
 

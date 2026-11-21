@@ -213,3 +213,66 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+document.addEventListener("DOMContentLoaded", function () {
+  const box = document.querySelector(".upload-box");
+  const input = document.getElementById("resume-input");
+  const nameEl = document.getElementById("file-name");
+  const errorEl = document.getElementById("upload-error");
+  if (!box || !input) return;
+
+  const MAX_SIZE = 10 * 1024 * 1024;
+  const ALLOWED = [".pdf", ".docx"];
+
+  function validate(file) {
+    const name = file.name.toLowerCase();
+    if (!ALLOWED.some((ext) => name.endsWith(ext))) {
+      return "Invalid file format. Please upload a PDF or DOCX file.";
+    }
+    if (file.size > MAX_SIZE) return "File size exceeds the 10 MB limit.";
+    return "";
+  }
+
+  function showFile(file) {
+    const error = validate(file);
+    if (error) {
+      errorEl.textContent = error;
+      nameEl.textContent = "";
+      input.value = "";
+      return false;
+    }
+    errorEl.textContent = "";
+    nameEl.textContent = "Selected: " + file.name;
+    return true;
+  }
+
+  input.addEventListener("change", function () {
+    if (input.files.length) showFile(input.files[0]);
+  });
+
+  ["dragenter", "dragover"].forEach(function (evt) {
+    box.addEventListener(evt, function (e) {
+      e.preventDefault();
+      box.classList.add("dragover");
+    });
+  });
+
+  ["dragleave", "drop"].forEach(function (evt) {
+    box.addEventListener(evt, function (e) {
+      e.preventDefault();
+      box.classList.remove("dragover");
+    });
+  });
+
+  box.addEventListener("drop", function (e) {
+    const files = e.dataTransfer.files;
+    if (files.length !== 1) {
+      errorEl.textContent = "Please drop only one file.";
+      return;
+    }
+    if (showFile(files[0])) input.files = files;
+  });
+
+  ["dragover", "drop"].forEach(function (evt) {
+    window.addEventListener(evt, function (e) { e.preventDefault(); });
+  });
+});
