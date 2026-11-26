@@ -3,6 +3,7 @@ import unittest
 from analyzer.job_matcher import (
     extract_job_skills,
     match_resume_to_job,
+    generate_missing_skill_suggestions,
     JOB_SKILLS,
     SKILL_ALIASES,
 )
@@ -195,6 +196,110 @@ class TestJobMatcher(unittest.TestCase):
             self.assertIn(b"Python", response.data)
             self.assertIn(b"Docker", response.data)
 
+
+    def test_generate_missing_skill_suggestions_basic(self):
+        missing = ["Docker", "Kubernetes"]
+        suggestions = generate_missing_skill_suggestions(missing)
+        self.assertEqual(len(suggestions), 2)
+        self.assertTrue(any("Docker" in s for s in suggestions))
+        self.assertTrue(any("Kubernetes" in s for s in suggestions))
+
+    def test_generate_missing_skill_suggestions_avoids_present_skills(self):
+        missing = ["Python", "Docker", "SQL"]
+        resume_skills = ["python", "SQL"]
+        suggestions = generate_missing_skill_suggestions(missing, resume_skills=resume_skills)
+        self.assertEqual(len(suggestions), 1)
+        self.assertIn("Docker", suggestions[0])
+        # Present skills must not have suggestions
+        for s in suggestions:
+            self.assertNotIn("learning Python", s)
+            self.assertNotIn("SQL knowledge", s)
+
+    def test_generate_missing_skill_suggestions_avoids_aliases_of_present_skills(self):
+        # Resume has alias 'k8s' and 'js'
+        missing = ["Kubernetes", "JavaScript", "Docker"]
+        resume_skills = ["k8s", "js"]
+        suggestions = generate_missing_skill_suggestions(missing, resume_skills=resume_skills)
+        self.assertEqual(len(suggestions), 1)
+        self.assertIn("Docker", suggestions[0])
+
+    def test_generate_missing_skill_suggestions_avoids_duplicates(self):
+        missing = ["Docker", "Docker", "docker", "DOCKER", "AWS", "aws"]
+        suggestions = generate_missing_skill_suggestions(missing)
+        self.assertEqual(len(suggestions), 2)
+        self.assertTrue(any("Docker" in s for s in suggestions))
+        self.assertTrue(any("AWS" in s for s in suggestions))
+
+    def test_generate_missing_skill_suggestions_empty(self):
+        self.assertEqual(generate_missing_skill_suggestions([]), [])
+        self.assertEqual(generate_missing_skill_suggestions(["   ", ""]), [])
+
+    def test_generate_missing_skill_suggestions_fallback_for_unlisted_skill(self):
+        missing = ["UncommonCustomFramework"]
+        suggestions = generate_missing_skill_suggestions(missing)
+        self.assertEqual(len(suggestions), 1)
+        self.assertIn("UncommonCustomFramework", suggestions[0])
+        self.assertIn("Consider gaining hands-on experience", suggestions[0])
+
+    def test_match_resume_to_job_includes_missing_skill_suggestions(self):
+        resume_skills = ["Python"]
+        jd = "Requirements: Python, Docker, AWS"
+        result = match_resume_to_job(resume_skills, jd)
+        self.assertIn("missing_skill_suggestions", result)
+        suggestions = result["missing_skill_suggestions"]
+        self.assertEqual(len(suggestions), 2)
+        # Suggestions must be based on missing skills (Docker, AWS) and not present (Python)
+        self.assertTrue(any("Docker" in s for s in suggestions))
+        self.assertTrue(any("AWS" in s for s in suggestions))
+        self.assertFalse(any("Python" in s for s in suggestions))
+
+    def test_match_resume_to_job_no_missing_skills_empty_suggestions(self):
+        resume_skills = ["Python", "Docker"]
+        jd = "Requirements: Python, Docker"
+        result = match_resume_to_job(resume_skills, jd)
+        self.assertEqual(result["missing_skills"], [])
+        self.assertEqual(result["missing_skill_suggestions"], [])
+
+    def test_flask_renders_missing_skills_suggestions_section(self):
+        from app import app
+        import io
+        from unittest.mock import patch
+
+        client = app.test_client()
+
+        with patch("app.extract_resume_text", return_value="John Doe\nSkills\nPython, SQL"):
+            data = {
+                "resume": (io.BytesIO(b"%PDF-1.4 dummy pdf"), "resume.pdf"),
+                "job_description": "We need Python, Docker, and Kubernetes engineer."
+            }
+            response = client.post("/analyze", data=data, content_type="multipart/form-data")
+            self.assertEqual(response.status_code, 200)
+            # Separate section must be present
+            self.assertIn(b"Missing Skills Suggestions", response.data)
+            # Suggestions for missing skills (Docker, Kubernetes) must be present
+            self.assertIn(b"Docker", response.data)
+            self.assertIn(b"Kubernetes", response.data)
+            # Existing skill analysis remains unchanged
+            self.assertIn(b"Skills Detected", response.data)
+            self.assertIn(b"Improvement Suggestions", response.data)
+
+    def test_flask_renders_all_skills_matched_message_in_suggestions_section(self):
+        from app import app
+        import io
+        from unittest.mock import patch
+
+        client = app.test_client()
+
+        with patch("app.extract_resume_text", return_value="John Doe\nSkills\nPython, SQL"):
+            data = {
+                "resume": (io.BytesIO(b"%PDF-1.4 dummy pdf"), "resume.pdf"),
+                "job_description": "We need Python and SQL developer."
+            }
+            response = client.post("/analyze", data=data, content_type="multipart/form-data")
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b"Missing Skills Suggestions", response.data)
+            self.assertIn(b"Great job! Your resume covers all required skills detected for this role.", response.data)
+
     def test_semantic_skill_accounting_and_partial_credit(self):
         """Verify accounting consistency and partial credit for semantically related skills."""
         # JD requires 3 skills: Python, Machine Learning, AWS
@@ -243,6 +348,7 @@ class TestJobMatcher(unittest.TestCase):
         pdf_bytes = build_report(mock_data)
         self.assertIsInstance(pdf_bytes, bytes)
         self.assertGreater(len(pdf_bytes), 500)
+
 
 
 if __name__ == "__main__":

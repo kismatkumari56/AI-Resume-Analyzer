@@ -1380,6 +1380,28 @@
     </section>
     {% endif %}
 
+    <!-- Missing Skills Suggestions (Based on Job Description) -->
+    {% if job_match and job_match.has_job_description and job_match.total_required > 0 %}
+    <section class="result-card">
+        <h2>Missing Skills Suggestions</h2>
+        {% if job_match.missing_skill_suggestions %}
+            <p class="ats-note">
+                Suggestions about skills that may improve your suitability for this job role:
+            </p>
+
+            {% for suggestion in job_match.missing_skill_suggestions %}
+                <div class="suggestion">
+                    ✦ {{ suggestion }}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="ats-note">
+                ✦ Great job! Your resume covers all required skills detected for this role.
+            </p>
+        {% endif %}
+    </section>
+    {% endif %}
+
 
     <!-- Detected Resume Sections -->
     {% if resume_sections %}

@@ -4,10 +4,16 @@ import os
 import threading
 import webbrowser
 
+
+from flask import Flask, render_template, request
+from werkzeug.utils import secure_filename
+from docx.opc.exceptions import PackageNotFoundError
+
 from docx.opc.exceptions import PackageNotFoundError
 from flask import Flask, jsonify, redirect, render_template, request, send_file, session
 
 from analyzer.docx_reader import DocxReadError, check_docx_file
+
 
 from analyzer.resume_extractor import extract_resume_text
 from analyzer.ocr import OCRError
@@ -81,13 +87,20 @@ def analyze():
     )
 
     try:
+
+        # Save the uploaded resume
+
         # Save the uploaded resume.
+
         file.save(filepath)
 
         # Extract text using the centralized format dispatcher.
         resume_text = extract_resume_text(filepath)
 
         if not resume_text.strip():
+
+            return f"No readable text found in this {file_type}."
+
             msg = f"No readable text found in this {file_type}."
             return format_error_response(
                 message=msg,
@@ -96,6 +109,7 @@ def analyze():
                 request=request,
                 legacy_200_for_html=True,
             )
+
 
         # Detect and organize sections
         resume_sections = extract_sections(resume_text)
@@ -167,6 +181,9 @@ def analyze():
         )
 
         # Job Description Matching
+
+        job_match = match_resume_to_job(found_skills, job_description)
+
         job_match = match_resume_to_job(
             found_skills,
             job_description,
@@ -217,6 +234,7 @@ def analyze():
             "skill_gap": skill_gap,
             "roadmap": roadmap,
         }
+
 
 
         print("\n========== RESUME ANALYSIS ==========")
@@ -278,10 +296,12 @@ def analyze():
             resume_score=resume_score,
             score_breakdown=score_breakdown,
 
+
             category_details=category_details,
             overall_explanation=overall_explanation,
             scoring_formula=scoring_formula,
             improvement_areas=improvement_areas,
+
 
             recommendations=recommendations,
             keyword_analysis=keyword_analysis,
@@ -330,6 +350,13 @@ def analyze():
             request=request,
             legacy_200_for_html=True,
         )
+
+
+    except (DocxReadError, PackageNotFoundError) as error:
+        # The message was written for the user, so it is safe to show
+        if isinstance(error, PackageNotFoundError):
+            return "This file is not a valid DOCX document."
+        return str(error)
 
 
     except Exception as error:

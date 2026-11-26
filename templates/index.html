@@ -141,9 +141,16 @@
 
                 </div>
 
+
+                <div class="job-input">
+
+                    <label for="job_description">
+                        🎯 Job description <span>(optional)</span>
+
                 <div class="role-selection-box" style="margin-top: 20px; text-align: left;">
                     <label for="target_role" style="display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px;">
                         🎯 Target Career Role <span>(Optional)</span>
+
                     </label>
                     <p style="color: var(--muted, #9290a5); font-size: 12px; margin-bottom: 8px;">
                         Select your desired career role to receive a personalized skill gap analysis and prioritized learning path.
@@ -169,6 +176,20 @@
                     </select>
                 </div>
 
+
+                    <p style="color: #9290a5; font-size: 12px; margin-bottom: 10px;">
+                        Paste the target job description to match your skills, identify missing keywords, and get role-specific skill suggestions.
+                    </p>
+
+                    <textarea id="job_description"
+                              name="job_description"
+                              rows="6"
+                              maxlength="20000"
+                              placeholder="Paste the job requirements, qualifications, and role description here..."></textarea>
+
+                    <small>Only used for this analysis. It is not saved.</small>
+
+
                 <div class="job-description-box" style="margin-top: 20px; text-align: left;">
                     <label for="job_description" style="display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px;">
                         💼 Job Description <span>(Optional)</span>
@@ -182,6 +203,7 @@
                               maxlength="20000"
                               placeholder="Paste the job requirements, qualifications, and role description here..."
                               style="width: 100%; padding: 12px 14px; border: 1px solid var(--border, #ddd8f3); border-radius: 10px; font-family: inherit; font-size: 13px; resize: vertical; line-height: 1.6;"></textarea>
+
                 </div>
 
                 <button type="submit">
