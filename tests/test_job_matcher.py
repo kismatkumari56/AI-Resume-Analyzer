@@ -97,6 +97,21 @@ class TestJobMatcher(unittest.TestCase):
         result = match_resume_to_job(resume_skills, jd)
         self.assertEqual(result["match_percentage"], 100)
 
+    def test_ambiguous_prose_terms_do_not_false_positive_in_job_descriptions(self):
+        jd = "Go to market strategy for R&D team. Plan C and Vitamin C. Express interest at root node."
+        extracted = extract_job_skills(jd)
+        self.assertNotIn("Go", extracted)
+        self.assertNotIn("R", extracted)
+        self.assertNotIn("C", extracted)
+        self.assertNotIn("Express", extracted)
+        self.assertNotIn("Node.js", extracted)
+
+        cpp_jd = "Looking for C++ and C# engineers."
+        cpp_extracted = extract_job_skills(cpp_jd)
+        self.assertIn("C++", cpp_extracted)
+        self.assertIn("C#", cpp_extracted)
+        self.assertNotIn("C", cpp_extracted)
+
     def test_empty_job_description(self):
         for empty_jd in ["", None, "   \n\t  "]:
             result = match_resume_to_job(["Python"], empty_jd)

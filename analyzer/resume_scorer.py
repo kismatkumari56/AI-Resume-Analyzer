@@ -9,6 +9,8 @@ transparent explanations and improvement suggestions for each category.
 import re
 from typing import Dict, List, Optional, Any
 
+from analyzer.skills_extractor import get_skill_dictionary_manager
+
 # Maximum points allocated to each category (total = 100)
 CATEGORY_MAX_SCORES: Dict[str, int] = {
     "Contact Information": 10,
@@ -155,20 +157,18 @@ def calculate_resume_score(text: Optional[str]) -> Dict[str, Any]:
         })
 
     # 3. Technical Skills (20 Marks)
-    technical_skills = [
-        "python", "java", "c++", "c",
-        "javascript", "html", "css", "sql",
-        "machine learning", "deep learning",
-        "flask", "django", "react",
-        "mongodb", "mysql", "git", "github",
-        "tensorflow", "pandas", "numpy"
-    ]
-
-    detected_skills = []
-    for skill in technical_skills:
-        pattern = r'(?<!\w)' + re.escape(skill) + r'(?!\w)'
-        if re.search(pattern, text_lower):
-            detected_skills.append(skill)
+    # Use the centralized skill dictionary (excluding Soft Skills) so modern
+    # stacks and aliases are recognized without double-counting C++ as C.
+    skill_manager = get_skill_dictionary_manager()
+    tech_categories = {
+        cat: skills
+        for cat, skills in skill_manager.get_categories().items()
+        if cat.lower() != "soft skills"
+    }
+    detected_skills = skill_manager.extract_skills(
+        text,
+        custom_dictionary=tech_categories if tech_categories else None,
+    )
 
     skills_score = min(len(detected_skills) * 2, 20)
 
