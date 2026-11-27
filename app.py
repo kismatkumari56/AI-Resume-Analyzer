@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import secrets
 import threading
 import webbrowser
 
@@ -46,7 +47,7 @@ from analyzer.temp_manager import (
 
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "resume-ai-roadmap-session-key-2026")
+app.secret_key = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
 
 app.config["UPLOAD_FOLDER"] = os.environ.get("RESUME_UPLOAD_FOLDER", DEFAULT_TEMP_DIR)
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
@@ -528,10 +529,11 @@ def toggle_roadmap_task():
 if __name__ == "__main__":
 
     url = "http://127.0.0.1:5000"
+    debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() in ("1", "true", "yes")
 
     threading.Timer(
         1.5,
         lambda: webbrowser.open_new(url)
     ).start()
 
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=debug_mode, use_reloader=False)
