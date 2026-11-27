@@ -1,13 +1,14 @@
 import unittest
 import os
 import tempfile
+import zipfile
 from unittest.mock import MagicMock, patch
 
 from docx import Document
-from docx.opc.exceptions import PackageNotFoundError
 from pypdf import PdfWriter
 from pypdf.errors import PdfStreamError
 
+from analyzer.docx_reader import DocxReadError, MAX_UNPACKED_SIZE
 from analyzer.resume_extractor import (
     UnsupportedFileFormatError,
     extract_docx_text,
@@ -154,8 +155,38 @@ class ResumeExtractorTests(unittest.TestCase):
 
             with self.assertRaises(PdfStreamError):
                 extract_pdf_text(pdf_path)
-            with self.assertRaises(PackageNotFoundError):
+            with self.assertRaises(DocxReadError):
                 extract_docx_text(docx_path)
+
+    def test_extract_docx_text_extracts_header_block_order_and_dedups_merged_cells(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "structured.docx")
+            document = Document()
+            document.sections[0].header.paragraphs[0].text = "jane@example.com | +1 555 123 4567"
+            document.add_paragraph("SKILLS")
+            table = document.add_table(rows=1, cols=2)
+            merged = table.rows[0].cells[0].merge(table.rows[0].cells[1])
+            merged.text = "Python, Flask, Docker"
+            document.add_paragraph("EXPERIENCE")
+            document.add_paragraph("Built APIs")
+            document.save(path)
+
+            text = extract_docx_text(path)
+
+        lines = text.strip().splitlines()
+        self.assertEqual(lines[0], "jane@example.com | +1 555 123 4567")
+        self.assertEqual(lines[1:5], ["SKILLS", "Python, Flask, Docker", "EXPERIENCE", "Built APIs"])
+        self.assertEqual(text.count("Python, Flask, Docker"), 1)
+
+    def test_extract_docx_text_rejects_oversized_unpacked_archive(self):
+        with tempfile.TemporaryDirectory() as directory:
+            bomb_path = os.path.join(directory, "bomb.docx")
+            with zipfile.ZipFile(bomb_path, "w", zipfile.ZIP_DEFLATED) as archive:
+                archive.writestr("word/document.xml", "<w:document/>")
+                archive.writestr("big.bin", b"0" * (MAX_UNPACKED_SIZE + 1))
+
+            with self.assertRaises(DocxReadError):
+                extract_docx_text(bomb_path)
 
     @patch("analyzer.resume_extractor.extract_docx_text")
     def test_dispatches_docx_extraction(self, extractor):

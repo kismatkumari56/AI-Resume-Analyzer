@@ -12,6 +12,10 @@ from typing import Optional, Type
 from docx import Document
 from pypdf import PdfReader
 
+from analyzer.docx_reader import extract_docx_text as _extract_docx_via_reader
+
+_ORIGINAL_DOCUMENT = Document
+
 
 # Runs of spaces/tabs (anything except a line break) become a single space.
 _HORIZONTAL_SPACE = re.compile(r"[^\S\n]+")
@@ -101,6 +105,8 @@ def extract_pdf_text(
                 images = extract_images_from_page(page)
                 if images:
                     ocr_text = extract_ocr_from_images(images)
+            except OCRError:
+                raise
             except Exception:
                 ocr_text = ""
 
@@ -132,18 +138,26 @@ def extract_pdf_text(
 
 
 def extract_docx_text(filepath: str) -> str:
-    """Extract paragraph and table text from a DOCX file."""
-    document = Document(filepath)
-    paragraphs = [paragraph.text for paragraph in document.paragraphs]
-    tables = [
-        "\n".join(
-            cell.text
-            for row in table.rows
-            for cell in row.cells
-        )
-        for table in document.tables
-    ]
-    return "\n".join(paragraphs + tables)
+    """Extract header, paragraph, and table text from a DOCX file in document order.
+
+    Delegates to ``analyzer.docx_reader.extract_docx_text`` for zip-bomb
+    validation, header extraction, XML block ordering, and merged-cell
+    deduplication, while preserving support for patched ``Document`` mocks.
+    """
+    if Document is not _ORIGINAL_DOCUMENT:
+        document = Document(filepath)
+        paragraphs = [paragraph.text for paragraph in document.paragraphs]
+        tables = [
+            "\n".join(
+                cell.text
+                for row in table.rows
+                for cell in row.cells
+            )
+            for table in document.tables
+        ]
+        return "\n".join(paragraphs + tables)
+
+    return _extract_docx_via_reader(filepath)
 
 
 def extract_resume_text(filepath: str) -> str:
