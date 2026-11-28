@@ -14,6 +14,7 @@ from analyzer.semantic_matcher import (
     calculate_semantic_job_match,
     identify_semantically_related_skills,
 )
+from analyzer.skill_dictionary import _compile_term
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +79,14 @@ SKILL_ALIASES: Dict[str, str] = {
 }
 
 
+# Pre-compile context-aware patterns once for JOB_SKILLS and SKILL_ALIASES
+_JOB_SKILL_PATTERNS = [(skill, _compile_term(skill)) for skill in JOB_SKILLS]
+_JOB_ALIAS_PATTERNS = [
+    (canonical_name, _compile_term(alias))
+    for alias, canonical_name in SKILL_ALIASES.items()
+]
+
+
 def extract_job_skills(text: Optional[str]) -> List[str]:
     """Extract unique relevant skills and requirements from a job description text.
 
@@ -90,21 +99,16 @@ def extract_job_skills(text: Optional[str]) -> List[str]:
     if not text or not text.strip():
         return []
 
-    text_lower = text.lower()
     found: Set[str] = set()
 
-    # 1. Match canonical skills
-    for skill in JOB_SKILLS:
-        skill_lower = skill.lower()
-        # Word boundary pattern that safely handles skills with +, #, ., etc.
-        pattern = r'(?<![\w#+])' + re.escape(skill_lower) + r'(?![\w#+])'
-        if re.search(pattern, text_lower):
+    # 1. Match canonical skills using context-aware boundaries
+    for skill, pattern in _JOB_SKILL_PATTERNS:
+        if pattern.search(text):
             found.add(skill)
 
-    # 2. Match aliases
-    for alias, canonical_name in SKILL_ALIASES.items():
-        pattern = r'(?<![\w#+])' + re.escape(alias) + r'(?![\w#+])'
-        if re.search(pattern, text_lower):
+    # 2. Match aliases using context-aware boundaries
+    for canonical_name, pattern in _JOB_ALIAS_PATTERNS:
+        if pattern.search(text):
             found.add(canonical_name)
 
     return sorted(found, key=lambda s: s.lower())

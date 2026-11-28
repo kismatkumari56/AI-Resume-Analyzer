@@ -768,11 +768,11 @@
         {% if section_quality.sections %}
         <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 16px;">
             {% for sec_key, sec in section_quality.sections.items() %}
-            <div style="border: 1px solid #eeedf6; border-radius: 12px; padding: 16px; background: #faf9ff;">
+            <div style="border: 1px solid var(--border, #eeedf6); border-radius: 12px; padding: 16px; background: var(--surface-soft, #faf9ff);">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
-                    <h3 style="margin: 0; font-size: 15px; color: #7054d9;">
+                    <h3 style="margin: 0; font-size: 15px; color: var(--accent-text, #7054d9);">
                         {{ sec.name }}
-                        {% if sec.is_optional %}<small style="font-size: 11px; color: #888;">(Optional)</small>{% endif %}
+                        {% if sec.is_optional %}<small style="font-size: 11px; color: var(--muted, #888);">(Optional)</small>{% endif %}
                     </h3>
                     <span class="skill-tag" style="{% if sec.status == 'Complete' %}background: #eefbf4; color: #1b8748; border-color: #c6f0d6;{% elif sec.status == 'Needs Detail' or sec.status == 'Missing' %}background: #fff0f0; color: #d94545; border-color: #ffd4d4;{% else %}background: #f0f7ff; color: #0284c7; border-color: #bae6fd;{% endif %}">
                         {{ sec.status }}{% if sec.present %} ({{ sec.quality_score }}/100){% endif %}
@@ -790,7 +790,7 @@
                 {% if sec.gaps %}
                 <div style="margin-top: 8px;">
                     <strong style="font-size: 12px; color: #d94545;">Gaps / Missing Elements:</strong>
-                    <ul style="margin: 4px 0 8px 18px; font-size: 13px; color: #555;">
+                    <ul style="margin: 4px 0 8px 18px; font-size: 13px; color: var(--text-soft, #555);">
                         {% for gap in sec.gaps %}
                             <li>{{ gap }}</li>
                         {% endfor %}
@@ -799,8 +799,8 @@
                 {% endif %}
 
                 {% if sec.suggestions %}
-                <div style="margin-top: 8px; border-top: 1px dashed #e4dcff; padding-top: 8px;">
-                    <strong style="font-size: 12px; color: #7054d9;">Recommendations for {{ sec.name }}:</strong>
+                <div style="margin-top: 8px; border-top: 1px dashed var(--accent-soft-border, #e4dcff); padding-top: 8px;">
+                    <strong style="font-size: 12px; color: var(--accent-text, #7054d9);">Recommendations for {{ sec.name }}:</strong>
                     {% for tip in sec.suggestions %}
                         <div class="suggestion" style="margin: 6px 0; padding: 10px; font-size: 13px;">
                             ✦ {{ tip }}
@@ -844,9 +844,9 @@
         {% if project_analysis.projects %}
         <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
             {% for proj in project_analysis.projects %}
-            <div style="border: 1px solid #eeedf6; border-radius: 12px; padding: 18px; background: #faf9ff;">
+            <div style="border: 1px solid var(--border, #eeedf6); border-radius: 12px; padding: 18px; background: var(--surface-soft, #faf9ff);">
                 <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
-                    <h3 style="margin: 0; font-size: 16px; color: #7054d9;">🚀 {{ proj.title }}</h3>
+                    <h3 style="margin: 0; font-size: 16px; color: var(--accent-text, #7054d9);">🚀 {{ proj.title }}</h3>
                     <span class="skill-tag" style="{% if proj.quality_status == 'Detailed & Strong' %}background: #eefbf4; color: #1b8748; border-color: #c6f0d6;{% elif proj.quality_status == 'Needs Improvement' %}background: #fff0f0; color: #d94545; border-color: #ffd4d4;{% endif %}">
                         {{ proj.quality_status }} ({{ proj.score }}/100)
                     </span>
@@ -879,7 +879,7 @@
                 {% if proj.missing_details %}
                 <div style="margin-top: 10px;">
                     <strong style="font-size: 13px; color: #d94545;">Missing Details to Address:</strong>
-                    <ul style="margin: 6px 0 10px 20px; font-size: 13px; color: #555;">
+                    <ul style="margin: 6px 0 10px 20px; font-size: 13px; color: var(--text-soft, #555);">
                         {% for detail in proj.missing_details %}
                             <li>{{ detail }}</li>
                         {% endfor %}
@@ -888,8 +888,8 @@
                 {% endif %}
 
                 {% if proj.wording_suggestions %}
-                <div style="margin-top: 12px; border-top: 1px dashed #e2deee; padding-top: 10px;">
-                    <strong style="font-size: 13px; color: #7054d9;">Sample Wording Suggestions (Use with your own details):</strong>
+                <div style="margin-top: 12px; border-top: 1px dashed var(--accent-soft-border, #e2deee); padding-top: 10px;">
+                    <strong style="font-size: 13px; color: var(--accent-text, #7054d9);">Sample Wording Suggestions (Use with your own details):</strong>
                     {% for item in proj.wording_suggestions %}
                     <div class="suggestion" style="margin: 8px 0; font-size: 13px;">
                         <strong>{{ item.focus }}:</strong> <code>{{ item.suggestion }}</code>
@@ -917,9 +917,9 @@
             <div style="margin-top: 12px;">
                 {% for t in project_analysis.sample_templates %}
                 <div class="suggestion" style="margin-bottom: 12px;">
-                    <strong style="color: #7054d9;">{{ t.category }}</strong> &middot; <span style="font-size: 12px; color: #666;">{{ t.description }}</span><br>
+                    <strong style="color: var(--accent-text, #7054d9);">{{ t.category }}</strong> &middot; <span style="font-size: 12px; color: var(--muted, #666);">{{ t.description }}</span><br>
                     <div style="margin-top: 6px;"><strong>Template:</strong> <code>{{ t.template }}</code></div>
-                    <div style="margin-top: 4px; font-style: italic; color: #777;"><strong>Example:</strong> {{ t.example }}</div>
+                    <div style="margin-top: 4px; font-style: italic; color: var(--muted, #777);"><strong>Example:</strong> {{ t.example }}</div>
                 </div>
                 {% endfor %}
             </div>
@@ -1007,7 +1007,7 @@
                 <p style="margin: 0 0 10px 0; font-size: 13px; color: var(--text, #302b4c); line-height: 1.5; font-style: italic;">
                     "{{ item.original_sentence }}"
                 </p>
-                <div style="display: flex; align-items: center; flex-wrap: gap: 6px; font-size: 12px; color: var(--text-soft, #555);">
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12px; color: var(--text-soft, #555);">
                     <strong style="color: var(--accent, #7054d9);">Suggested Action Verbs:</strong>
                     {% for alt in item.suggested_alternatives %}
                     <span style="background: rgba(112, 84, 217, 0.08); color: var(--accent, #7054d9); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 4px;">{{ alt }}</span>
@@ -1290,7 +1290,7 @@
             {% endif %}
         {% endif %}
 
-        <p class="ats-note" style="margin-top: 20px; font-style: italic; border-top: 1px solid #eeedf6; padding-top: 12px;">
+        <p class="ats-note" style="margin-top: 20px; font-style: italic; border-top: 1px solid var(--border, #eeedf6); padding-top: 12px;">
             ✦ {{ job_match.disclaimer }}
         </p>
     </section>

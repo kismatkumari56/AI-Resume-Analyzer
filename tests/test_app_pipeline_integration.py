@@ -1,9 +1,12 @@
 import io
+import os
 import unittest
+import zipfile
 from unittest.mock import patch
 
 from docx import Document
 
+from analyzer.docx_reader import MAX_UNPACKED_SIZE
 from analyzer.ocr import OCRError
 from app import app
 
@@ -131,6 +134,60 @@ class TestAppPipelineIntegration(unittest.TestCase):
         )
         self.assertEqual(resp_invalid.status_code, 400)
         self.assertEqual(resp_invalid.get_json()["code"], "INVALID_TASK_ID")
+
+    def test_docx_header_and_table_order_preserved_in_analyze_pipeline(self):
+        """Contact info in DOCX header and skills inside a table must be extracted in order."""
+        doc = Document()
+        doc.sections[0].header.paragraphs[0].text = "alex@example.com | +1 555 234 5678"
+        doc.add_paragraph("SKILLS")
+        table = doc.add_table(rows=1, cols=2)
+        table.rows[0].cells[0].merge(table.rows[0].cells[1]).text = "Python, Docker, Kubernetes"
+        doc.add_paragraph("EXPERIENCE")
+        doc.add_paragraph("Built cloud APIs.")
+        buf = io.BytesIO()
+        doc.save(buf)
+        buf.seek(0)
+
+        resp = self.client.post(
+            "/api/analyze",
+            data={"resume": (buf, "resume.docx")},
+            content_type="multipart/form-data",
+            headers={"Accept": "application/json"},
+        )
+        self.assertEqual(resp.status_code, 200)
+        payload = resp.get_json()
+        self.assertEqual(payload["score_breakdown"]["Contact Information"], 10)
+        self.assertIn("Docker", payload["skills"])
+        self.assertIn("Kubernetes", payload["resume_sections"]["skills"])
+
+    def test_api_docx_zip_bomb_rejected_with_400(self):
+        """Oversized unpacked DOCX archive must be rejected before Document parsing."""
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("word/document.xml", "<w:document/>")
+            archive.writestr("big.bin", b"0" * (MAX_UNPACKED_SIZE + 1))
+        buf.seek(0)
+
+        resp = self.client.post(
+            "/api/analyze",
+            data={"resume": (buf, "bomb.docx")},
+            content_type="multipart/form-data",
+            headers={"Accept": "application/json"},
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.get_json()["code"], "INVALID_DOCX_FILE")
+
+    def test_frontend_templates_and_script_hygiene(self):
+        """Verify unified upload script, valid CSS syntax, and non-hardcoded secret key."""
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(root_dir, "static", "script.js"), encoding="utf-8") as f:
+            script = f.read()
+        with open(os.path.join(root_dir, "templates", "result.html"), encoding="utf-8") as f:
+            result_html = f.read()
+
+        self.assertNotIn("fileSizeError", script)
+        self.assertNotIn("flex-wrap: gap:", result_html)
+        self.assertNotEqual(app.secret_key, "resume-ai-roadmap-session-key-2026")
 
 
 if __name__ == "__main__":

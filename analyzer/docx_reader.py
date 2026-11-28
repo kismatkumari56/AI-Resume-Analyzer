@@ -102,4 +102,4 @@ def extract_docx_text(filepath):
 
     lines.extend(collect_lines(document))
 
-    return "\n".join(lines) + "\n"
+    return "\n".join(lines) + "\n" if lines else ""

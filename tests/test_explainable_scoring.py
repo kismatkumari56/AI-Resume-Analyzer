@@ -111,6 +111,21 @@ class TestExplainableScoring(unittest.TestCase):
         self.assertEqual(res_11["breakdown"]["Technical Skills"], 20)
         self.assertIn("full credit", res_11["category_details"]["Technical Skills"]["explanation"].lower())
 
+        # C++ must not double-count as both C++ and C
+        res_cpp = calculate_resume_score("Proficient in C++")
+        self.assertEqual(res_cpp["detected_skills"], ["C++"])
+        self.assertEqual(res_cpp["breakdown"]["Technical Skills"], 2)
+
+        # Modern stack skills in dictionary (Go, TypeScript, Docker, Kubernetes, AWS, etc.)
+        modern_stack = "Go, TypeScript, React, Node.js, Docker, Kubernetes, AWS, Terraform, PostgreSQL, GraphQL"
+        res_modern = calculate_resume_score(modern_stack)
+        self.assertEqual(res_modern["breakdown"]["Technical Skills"], 20)
+
+        # Soft skills must not count as Technical Skills
+        res_soft = calculate_resume_score("Communication, Leadership, Teamwork, Problem Solving")
+        self.assertEqual(res_soft["detected_skills"], [])
+        self.assertEqual(res_soft["breakdown"]["Technical Skills"], 0)
+
     def test_readability_formatting_scoring_rules(self):
         """Readability formula: >= 100 words (5 pts) + >= 3 headings (5 pts)."""
         headings = "Education\nSkills\nProjects\nExperience\n"
